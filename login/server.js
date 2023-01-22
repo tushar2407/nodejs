@@ -21,6 +21,7 @@ initializePassport(
 const users = [];
 
 app.set('view-engine', 'ejs');
+app.engine('ejs', require('ejs').__express);
 app.use(express.urlencoded({extended:  false})); // need the form values in req variable
 app.use(flash());
 app.use(session({
