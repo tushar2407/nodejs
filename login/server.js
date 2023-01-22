@@ -88,4 +88,4 @@ function checkNotAuthenticated(req, res, next) {
 
 app.listen(3000);
 
-modeule.exports = app;
+module.exports = app;
