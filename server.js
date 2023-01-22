@@ -8,7 +8,7 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
-const methodOverride = require("method-override");
+const methodOverride = require("method-override"); // for logout
 
 const initializePassport = require("./passport-config");
 initializePassport(
@@ -87,3 +87,5 @@ function checkNotAuthenticated(req, res, next) {
 }
 
 app.listen(3000);
+
+modeule.exports = app;
