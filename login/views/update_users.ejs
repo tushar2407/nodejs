@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../components/head', {name: name}); %>
+    <title>Update a User</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-3"></div>
+            <div class="col-6">
+                <h1> Update a user </h1>
+                
+                <% if(locals.message){ %>
+                   <i><%= message %></i> 
+                <% } %>
+                 <%=user %>
+                <form action="/update-user" method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input class = "form-control" type="text" name="name" placeholder="name" required value=<%=user.name%> >
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input class = "form-control"  type="email" name="email" placeholder="email" value=<%=user.email %> >
+                    </div>
+                    <div class="mb-3">
+                        <% if (user.role=='admin') {%>
+                            <input class="form-check-input" type="checkbox" value="admin" name="role" id="role" checked>
+                        <% } else{ %>
+                            <input class="form-check-input" type="checkbox" value="admin" name="role" id="role">
+                        <% }%>
+                        <label class="form-check-label" for="role">
+                          Admin
+                        </label>
+                      </div>
+                    <button class="btn btn-success" type="submit">Submit</button>
+                </form>
+            </div>
+            <div class="col-3"></div>
+        </div>
+    </div>
+</body>
+</html>

@@ -17,14 +17,14 @@ initializePassport(
     id => users.find(user => user.id === id)
 )
 
-const users = []
-const books = [
+var users = []
+var books = [
     {
         name: "Prince of Persia"
     }
 ]
-const liked_books= []
-const readLater_books = []
+var liked_books= []
+var readLater_books = []
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -41,15 +41,17 @@ app.use(methodOverride('_method'))
 app.get('/books', async (req, res) =>  {
     // const books = await Book.find({}).exec();
     var name = "" ;
+    var user = "" ;
     if(req.isAuthenticated())
     {
         name=req.user.name;
+        user = req.user;
     }
     console.log(books);
-    res.render('books.ejs', {name: name, books: books});
+    res.render('books.ejs', {name: name, books: books, user: user});
 });
 
-app.post('/books-like', checkAuthenticated, async (req, res) => {
+app.post('/books-like', checkAuthenticated, (req, res) => {
     // const book = await LikedBook.create({ 
     //     email: req.user.email,
     //     book: req.body.book
@@ -61,6 +63,32 @@ app.post('/books-like', checkAuthenticated, async (req, res) => {
     });
 
     res.redirect("/books" );
+});
+
+app.get('/users', checkAdmin, (req, res) => {
+    res.render('users.ejs', {name:req.user.name, users: users.filter(user => user.email!=req.user.email)});
+});
+
+app.get('/add-books', checkAdmin, (req, res) =>{
+    res.render('add_books.ejs', {name: req.user.name, user: req.user});
+});
+
+app.post('/add-books', checkAdmin, (req, res) =>{
+    books.push({
+        name: req.body.name 
+    });
+    res.redirect('/books');
+});
+
+app.post('/delete-books', checkAdmin, (req, res) =>{
+    books = books.filter(book => book.name != req.body.name);
+    res.redirect('/books');
+});
+
+
+app.post('/delete-users', checkAdmin, (req, res) =>{
+    books = users.filter(user => user.email != req.body.email);
+    res.redirect('/books');
 });
 
 app.get('/books-liked', checkAuthenticated, async (req, res) => {
@@ -118,6 +146,33 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
     }
 })
 
+app.get('/add-new-user', checkAdmin, (req, res) => {
+    res.render('add_users.ejs', {name: req.user.name, user: req.user});
+});
+
+app.get('/update-user', checkAdmin, (req, res) => {
+    // console.log(req.body.email);
+    console.log(users.find(user => user.email === req.body.user));
+    res.render('update_users.ejs', {name: req.user.name, user: users.find(user=> user.email === req.body.user)});
+});
+
+app.post('/add-new-user', checkAdmin, async (req, res) => {
+    try {
+        console.log(req.body);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10)
+        users.push({
+            id: Date.now().toString(),
+            name: req.body.name,
+            email: req.body.email,
+            role: ((req.body.role==='admin') ? 'admin':'user'),
+            password: hashedPassword
+        })
+        res.redirect('/users');
+    } catch {
+        res.redirect('/users');
+    }
+})
+
 app.delete('/logout', (req, res, next) => {
     req.logout(function(err) {
         if (err) { return next(err); }
@@ -131,6 +186,13 @@ function checkAuthenticated(req, res, next) {
         return next()
     }
     res.redirect('/login')
+}
+
+function checkAdmin(req, res, next) {
+    if (req.isAuthenticated() && req.user.role ==='admin') {
+        return next();
+    }
+    res.redirect('/login');
 }
 
 function checkNotAuthenticated(req, res, next) {

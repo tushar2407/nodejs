@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../components/head', {name: name}); %>
+    <title>List of Users</title>
+</head>
+<body>
+    <div class="container">
+        <% users.forEach(function(user) { %>
+            <li>
+                <strong>name: <%= user.name %></strong> / 
+                <strong>email: <%= user.email %></strong> / 
+                <strong>role: <%= user.role %></strong>
+                <form action="/delete-users" method="post">
+                    <input type="hidden" name="email" value="<%= user.email %>" />
+                    <button type="submit">Delete</button>
+                </form>
+                <form action="/update-user" method="get">
+                    <input type="hidden" name="user" value="<%= user.email %>" />
+                    <button type="submit">Update</button>
+                </form>
+            </li>
+        <% }); %>
+    </div>
+</body>
+</html>

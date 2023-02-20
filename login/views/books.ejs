@@ -24,6 +24,13 @@
                     <input type="hidden" name="book" value="<%= book.name %>" />
                     <button type="submit">Read Later</button>
                 </form>
+                <% if(user && user.role == 'admin') {%>
+                    <form action="/delete-books" method="post">
+                        <input type="hidden" name="name" value="<%= book.name %>" />
+                        <button type="submit">Delete</button>
+                    </form>
+                    <% %>
+                <% }%>
             </li>
         <% }); %>
         <% } %> 
