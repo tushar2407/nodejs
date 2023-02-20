@@ -18,3 +18,10 @@ $ npm i nodemon -g
 # Then, run the following command
 $ npm run devStart
 ```
+
+To start the existing project:
+```bash
+# Got to the preferred directory
+$ npm i
+$ npm run devStart
+```
