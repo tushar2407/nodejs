@@ -14,7 +14,7 @@
                 <% if(locals.message){ %>
                    <i><%= message %></i> 
                 <% } %>
-                 <%=user %>
+                 <!-- <%=user %> -->
                 <form action="/update-user" method="POST">
                     <div class="mb-3">
                         <label for="name" class="form-label">Name</label>
@@ -22,7 +22,8 @@
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
-                        <input class = "form-control"  type="email" name="email" placeholder="email" value=<%=user.email %> >
+                        <p><%=user.email %></p>
+                        <input class = "form-control"  type="hidden" name="email" placeholder="email" value=<%=user.email %> >
                     </div>
                     <div class="mb-3">
                         <% if (user.role=='admin') {%>

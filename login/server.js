@@ -17,7 +17,18 @@ initializePassport(
     id => users.find(user => user.id === id)
 )
 
-var users = []
+var users = [
+    {
+        name: "tushar",
+        email: "tu@tu",
+        role: 'user'
+    },
+    {
+        name: "avi",
+        email: "avi@avi",
+        role: 'user'
+    },
+]
 var books = [
     {
         name: "Prince of Persia"
@@ -51,24 +62,6 @@ app.get('/books', async (req, res) =>  {
     res.render('books.ejs', {name: name, books: books, user: user});
 });
 
-app.post('/books-like', checkAuthenticated, (req, res) => {
-    // const book = await LikedBook.create({ 
-    //     email: req.user.email,
-    //     book: req.body.book
-    // });
-    // book.save();
-    liked_books.push({
-        email: req.user.email,
-        book: req.body.book
-    });
-
-    res.redirect("/books" );
-});
-
-app.get('/users', checkAdmin, (req, res) => {
-    res.render('users.ejs', {name:req.user.name, users: users.filter(user => user.email!=req.user.email)});
-});
-
 app.get('/add-books', checkAdmin, (req, res) =>{
     res.render('add_books.ejs', {name: req.user.name, user: req.user});
 });
@@ -85,10 +78,18 @@ app.post('/delete-books', checkAdmin, (req, res) =>{
     res.redirect('/books');
 });
 
+app.post('/books-like', checkAuthenticated, (req, res) => {
+    // const book = await LikedBook.create({ 
+    //     email: req.user.email,
+    //     book: req.body.book
+    // });
+    // book.save();
+    liked_books.push({
+        email: req.user.email,
+        book: req.body.book
+    });
 
-app.post('/delete-users', checkAdmin, (req, res) =>{
-    books = users.filter(user => user.email != req.body.email);
-    res.redirect('/books');
+    res.redirect("/books" );
 });
 
 app.get('/books-liked', checkAuthenticated, async (req, res) => {
@@ -110,6 +111,50 @@ app.get('/books-to-readlater', checkAuthenticated, async (req, res) => {
     console.log(temp);
     res.render("books_readlater.ejs", {name: req.user.name, books: temp});
 });
+
+
+app.get('/users', checkAdmin, (req, res) => {
+    res.render('users.ejs', {name:"req.user.name", users: users.filter(user => user.email!="req.user.email")});
+});
+
+app.post('/delete-users', checkAdmin, (req, res) =>{
+    books = users.filter(user => user.email != req.body.email);
+    res.redirect('/books');
+});
+
+app.get('/add-new-user', checkAdmin, (req, res) => {
+    res.render('add_users.ejs', {name: req.user.name, user: req.user});
+});
+
+app.get('/update-user', checkAdmin,  (req, res) => {
+    // console.log(req.query);
+    res.render('update_users.ejs', {name: "req.user.name", user: users.find(user=> user.email === req.query.email)});
+});
+
+app.post('/update-user', checkAdmin, (req, res) => {
+    console.log(req.body);
+    var u = users.findIndex(user=> user.email === req.body.email);
+    users[u].name = req.body.name;
+    users[u].role = ((req.body.role==='admin') ? 'admin':'user');
+    res.redirect('/users');
+});
+
+app.post('/add-new-user', checkAdmin, async (req, res) => {
+    try {
+        console.log(req.body);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10)
+        users.push({
+            id: Date.now().toString(),
+            name: req.body.name,
+            email: req.body.email,
+            role: ((req.body.role==='admin') ? 'admin':'user'),
+            password: hashedPassword
+        })
+        res.redirect('/users');
+    } catch {
+        res.redirect('/users');
+    }
+})
   
 app.get('/', checkAuthenticated, (req, res) => {
     res.render('index.ejs', { name: req.user.name, user: req.user })
@@ -146,32 +191,6 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
     }
 })
 
-app.get('/add-new-user', checkAdmin, (req, res) => {
-    res.render('add_users.ejs', {name: req.user.name, user: req.user});
-});
-
-app.get('/update-user', checkAdmin, (req, res) => {
-    // console.log(req.body.email);
-    console.log(users.find(user => user.email === req.body.user));
-    res.render('update_users.ejs', {name: req.user.name, user: users.find(user=> user.email === req.body.user)});
-});
-
-app.post('/add-new-user', checkAdmin, async (req, res) => {
-    try {
-        console.log(req.body);
-        const hashedPassword = await bcrypt.hash(req.body.password, 10)
-        users.push({
-            id: Date.now().toString(),
-            name: req.body.name,
-            email: req.body.email,
-            role: ((req.body.role==='admin') ? 'admin':'user'),
-            password: hashedPassword
-        })
-        res.redirect('/users');
-    } catch {
-        res.redirect('/users');
-    }
-})
 
 app.delete('/logout', (req, res, next) => {
     req.logout(function(err) {
