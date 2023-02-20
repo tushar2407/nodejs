@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../components/head', {name: name}); %>
+
+    <title>List of Liked Books</title>
+</head>
+<body>
+    <div class="container">
+        <% if (name){ %>
+        <h1> Hi <%= name %> </h1>
+        <% } %>
+
+        <h1>List of Liked Books</h1>
+        <% if(books) { %>
+        <% books.forEach(function(book) { %>
+            <li>
+                <strong><%= book.book %></strong>
+            </li>
+        <% }); %>
+        <% } %> 
+    </div>
+</body>
+</html>

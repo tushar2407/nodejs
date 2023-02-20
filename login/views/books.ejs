@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../components/head', {name: name}); %>
+
+    <title>List of Books</title>
+</head>
+<body>
+    <div class="container">
+        <% if (name){ %>
+        <h1> Hi <%= name %> </h1>
+        <% } %>
+
+        <h1>List of Books</h1>
+        <% if(books) { %>
+        <% books.forEach(function(book) { %>
+            <li>
+                <strong><%= book.name %></strong>
+                <form action="/books-like" method="post">
+                    <input type="hidden" name="book" value="<%= book.name %>" />
+                    <button type="submit">Like</button>
+                </form>
+                <form action="/books-readlater" method="post">
+                    <input type="hidden" name="book" value="<%= book.name %>" />
+                    <button type="submit">Read Later</button>
+                </form>
+            </li>
+        <% }); %>
+        <% } %> 
+    </div>
+</body>
+</html>

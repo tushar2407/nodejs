@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-    <title>Document</title>
+    <%- include('../components/head', {name: name}); %>
+    <title>Profile</title>
 </head>
 <body>
     <div class="container">
@@ -13,6 +10,23 @@
             <div class="col-3"></div>
             <div class="col-6">
                 <h1>Hi <%= name %>!!</h1>
+                <h2>Available links</h2>
+                <ul>
+                    <li><a href="/books">Books</a></li>
+                    <li><a href="/books-liked">Liked Books</a></li>
+                    <li><a href="/books-to-readlater">Read Later Books</a></li>
+                    <% if (user.role == "admin"){%>
+                        <li>
+                            <a href="/add-books"> Add a new Book</a>
+                        </li>    
+                        <li>
+                            <a href="/update-books"> Update a Book</a>
+                        </li>
+                        <li>
+                            <a href="/delete-books"> Delete new Book</a>
+                        </li>
+                    <% } %>
+                </ul>
                 <form action="/logout?_method=DELETE" method="POST">
                     <button type="submit">Logout</button>
                 </form>

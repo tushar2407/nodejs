@@ -1,129 +1,143 @@
-if(process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config()
 }
+  
+const express = require('express')
+const app = express()
+const bcrypt = require('bcrypt')
+const passport = require('passport')
+const flash = require('express-flash')
+const session = require('express-session')
+const methodOverride = require('method-override')
 
-const express = require("express");
-const app = express();
-const bcrypt = require("bcrypt"); 
-const passport = require("passport");
-const flash = require("express-flash");
-const session = require("express-session");
-const methodOverride = require("method-override"); // for logout
-const mongoose = require('mongoose');
-const User = require('./models/user');
-var jwt = require("jsonwebtoken");
-
-
-mongoose.connect("mongodb+srv://tushar1:tushar1@cluster0.4zq2u.mongodb.net/?retryWrites=true&w=majority", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
-
-const initializePassport = require("./passport-config");
+const initializePassport = require('./passport-config')
 initializePassport(
-    passport
-);
+    passport,
+    email => users.find(user => user.email === email),
+    id => users.find(user => user.id === id)
+)
 
+const users = []
+const books = [
+    {
+        name: "Prince of Persia"
+    }
+]
+const liked_books= []
+const readLater_books = []
 
-app.set('view-engine', 'ejs');
-/*
-Below 2 lines needed for express configuration with vercel
-*/
-app.set('views', __dirname + '/views')
-app.engine('ejs', require('ejs').__express);
-app.use(express.urlencoded({extended:  false})); // need the form values in req variable
-app.use(flash());
+app.set('view-engine', 'ejs')
+app.use(express.urlencoded({ extended: false }))
+app.use(flash())
 app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave : false, // do not save session variables again if nothing changed
-    saveUninitialized: false  // do not empty value in a session if no value entered 
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(methodOverride('_method'));
+secret: process.env.SESSION_SECRET,
+resave: false,
+saveUninitialized: false
+}))
+app.use(passport.initialize())
+app.use(passport.session())
+app.use(methodOverride('_method'))
 
-app.get('/', checkAuthenticated, (req, res) => {
-    res.render('index.ejs', {name: req.user.name});
+app.get('/books', async (req, res) =>  {
+    // const books = await Book.find({}).exec();
+    var name = "" ;
+    if(req.isAuthenticated())
+    {
+        name=req.user.name;
+    }
+    console.log(books);
+    res.render('books.ejs', {name: name, books: books});
 });
 
-app.get('/login', checkNotAuthenticated, (req, res)=>{
-    res.render('login.ejs');
-});
-
-app.post("/login", function (req, res) {
-	if (!req.body.username) {
-		res.json({ success: false, message: "Email was not given" })
-	}
-	else if (!req.body.password) {
-		res.json({ success: false, message: "Password was not given" })
-	}
-	else {
-		passport.authenticate("local", function (err, user, info) {
-            console.log(err);
-			if (err) {
-				res.json({ success: false, message: err });
-			}
-			else {
-                console.log(user);
-                console.log(info);
-				if (!user) {
-					res.json({ success: false, message: "username or password incorrect" });
-				}
-				else {
-					const token = jwt.sign({ email: user.email }, process.env.SESSION_SECRET, { expiresIn: "24h" });
-					res.json({ success: true, message: "Authentication successful", token: token });
-				}
-			}
-		}, {usernameField: 'email'})(req, res);
-	}
-});
-
-
-app.get('/register', checkNotAuthenticated, ( req, res)=>{
-    res.render('register.ejs');
-});
-
-app.post("/register", function (req, res) {
-    User.register(new User({ userId: Date.now().toString(), email: req.body.email, name: req.body.name }), req.body.password, function (err, user) {
-        if (err) {
-            res.render('register.ejs', { message: "Your account could not be saved. Error: " + err });
-            // res.json({ success: false, message: "Your account could not be saved. Error: " + err });
-        }
-        else {
-            req.login(user, (er) => {
-                if (er) {
-                    res.render('register.ejs', { message: err });
-                    // res.json({ success: false, message: er });
-                }
-                else {
-                    res.redirect('/login');
-                }
-            });
-        }
+app.post('/books-like', checkAuthenticated, async (req, res) => {
+    // const book = await LikedBook.create({ 
+    //     email: req.user.email,
+    //     book: req.body.book
+    // });
+    // book.save();
+    liked_books.push({
+        email: req.user.email,
+        book: req.body.book
     });
+
+    res.redirect("/books" );
 });
 
-app.delete('/logout', (req, res) => {
+app.get('/books-liked', checkAuthenticated, async (req, res) => {
+    const temp = liked_books.filter(book => book.email === req.user.email);
+    console.log(temp);
+    res.render("books_liked.ejs", {name: req.user.name, books: temp});
+});
+
+app.post('/books-readlater', checkAuthenticated, async (req, res) => {
+    readLater_books.push({
+        email: req.user.email,
+        book: req.body.book
+    });
+    res.redirect("/books" );
+});
+
+app.get('/books-to-readlater', checkAuthenticated, async (req, res) => {
+    const temp = readLater_books.filter(book => book.email === req.user.email);
+    console.log(temp);
+    res.render("books_readlater.ejs", {name: req.user.name, books: temp});
+});
+  
+app.get('/', checkAuthenticated, (req, res) => {
+    res.render('index.ejs', { name: req.user.name, user: req.user })
+})
+
+app.get('/login', checkNotAuthenticated, (req, res) => {
+    res.render('login.ejs')
+})
+
+app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login',
+    failureFlash: true
+}))
+
+app.get('/register', checkNotAuthenticated, (req, res) => {
+    res.render('register.ejs')
+})
+
+app.post('/register', checkNotAuthenticated, async (req, res) => {
+    try {
+        console.log(req.body);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10)
+        users.push({
+            id: Date.now().toString(),
+            name: req.body.name,
+            email: req.body.email,
+            role: ((req.body.role==='admin') ? 'admin':'user'),
+            password: hashedPassword
+        })
+        res.redirect('/login')
+    } catch {
+        res.redirect('/register')
+    }
+})
+
+app.delete('/logout', (req, res, next) => {
     req.logout(function(err) {
-    if (err) { return next(err); }
+        if (err) { return next(err); }
         res.redirect('/login');
-  });
+    });
+    res.redirect('/login');
 })
 
 function checkAuthenticated(req, res, next) {
-    if(req.isAuthenticated()){
-        return next();
+    if (req.isAuthenticated()) {
+        return next()
     }
-    res.redirect('/login');
+    res.redirect('/login')
 }
 
 function checkNotAuthenticated(req, res, next) {
-    if(req.isAuthenticated()){
-        return res.redirect('/');
+    if (req.isAuthenticated()) {
+        return res.redirect('/')
     }
-    next();
+    next()
 }
 
-app.listen(3000);
-
-module.exports = app;
+app.listen(3000)
